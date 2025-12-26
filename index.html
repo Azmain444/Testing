@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Earn By Watch</title>
+    <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root { --primary: #4f46e5; --bg: #f1f5f9; --white: #ffffff; --text-dark: #0f172a; --admin-color: #dc2626; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Urbanist', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--bg); color: var(--text-dark); padding-bottom: 90px; }
+
+        .page { display: none; opacity: 0; padding: 15px; animation: slideUp 0.3s ease forwards; }
+        .page.active { display: block; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .header { background: var(--white); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 50; box-shadow: 0 4px 20px rgba(0,0,0,0.03); }
+        .brand { font-size: 1.2rem; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 8px; }
+        
+        .card { background: var(--white); border-radius: 20px; padding: 20px; margin-bottom: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.02); border: 1px solid #f1f5f9; }
+        .btn-full { width: 100%; background: var(--primary); color: white; padding: 14px; border: none; border-radius: 14px; font-weight: 700; cursor: pointer; transition: 0.3s; }
+        .btn-full:active { transform: scale(0.98); }
+
+        .nav-bar { position: fixed; bottom: 0; width: 100%; background: var(--white); border-top: 1px solid #f1f5f9; display: flex; justify-content: space-around; padding: 10px 0 20px; z-index: 100; }
+        .nav-item { text-align: center; color: #94a3b8; cursor: pointer; width: 20%; font-size: 0.7rem; }
+        .nav-item.active { color: var(--primary); }
+        .nav-item i { font-size: 1.3rem; display: block; margin-bottom: 3px; }
+
+        #admin-nav { display: none; color: var(--admin-color); }
+        .admin-badge { background: var(--admin-color); color: white; padding: 2px 8px; border-radius: 5px; font-size: 10px; margin-left: 5px; }
+        .withdraw-item { border-bottom: 1px solid #eee; padding: 10px 0; font-size: 0.85rem; }
+        input { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 10px; margin: 8px 0; outline: none; background: #f8fafc; }
+    </style>
+</head>
+<body>
+
+<header class="header">
+    <div class="brand">Earn By Watch <span id="admin-tag" style="display:none;" class="admin-badge">ADMIN MODE</span></div>
+    <div style="font-weight: 700; color: var(--primary);">৳ <span id="header-balance">0.00</span></div>
+</header>
+
+<div id="home" class="page active">
+    <div class="card" style="background: linear-gradient(135deg, #4f46e5, #818cf8); color: white; text-align: center;">
+        <p style="opacity: 0.9;">Total Balance</p>
+        <h1 style="font-size: 2.5rem; margin: 10px 0;">৳ <span id="p-balance">0.00</span></h1>
+    </div>
+    
+    <div class="card" style="padding: 15px; border: 1px solid #bfdbfe; background: #eff6ff;">
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+            <i class="fas fa-play-circle" style="font-size:1.5rem; color:#3b82f6;"></i>
+            <div>
+                <b style="display:block; font-size:0.9rem;">Rewarded Video Ad</b>
+                <small style="color:#64748b;">Watch ads to earn unlimited bonus</small>
+            </div>
+        </div>
+        <button class="btn-full" id="btn-watch-ad" onclick="watchAd()">Watch & Earn ৳1.5</button>
+    </div>
+
+    <div class="card">
+        <h4 style="margin-bottom:8px;">Invite Friends</h4>
+        <div id="ref-link-text" style="font-size:0.75rem; background:#f8fafc; padding:12px; border-radius:10px; border:1px dashed #cbd5e1; word-break: break-all;">Loading Link...</div>
+        <button onclick="copyRef()" style="background:#0ea5e9; margin-top:10px;" class="btn-full">Copy Referral Link</button>
+    </div>
+</div>
+
+<div id="tasks" class="page">
+    <h3 style="margin-bottom:15px;">Micro Tasks</h3>
+    <div id="task-list-container">
+        <p style="text-align:center; color:#94a3b8;">No tasks available right now.</p>
+    </div>
+</div>
+
+<div id="wallet" class="page">
+    <div class="card">
+        <h3>Withdraw Earnings</h3>
+        <p style="font-size:0.8rem; color:#ef4444; margin-bottom:10px;">Minimum withdraw: ৳50</p>
+        <input type="number" id="w-amount" placeholder="Enter Amount">
+        <input type="text" id="w-number" placeholder="Bkash/Nagad Number">
+        <button class="btn-full" onclick="submitWithdraw()">Submit Request</button>
+    </div>
+    <h4 style="margin:15px 0 10px;">Withdraw History</h4>
+    <div id="history-list"></div>
+</div>
+
+<div id="admin-panel" class="page">
+    <h2 style="color:var(--admin-color); margin-bottom:15px;"><i class="fas fa-tools"></i> Admin Control</h2>
+    
+    <div class="card">
+        <h4 style="color:var(--admin-color)">Add Task</h4>
+        <input type="text" id="admin-task-title" placeholder="Task Name (Ex: Follow YT)">
+        <input type="text" id="admin-task-link" placeholder="Task URL/Link">
+        <input type="number" id="admin-task-reward" placeholder="Reward Amount (TK)">
+        <button onclick="adminAddTask()" class="btn-full" style="background:var(--admin-color)">Publish Task</button>
+    </div>
+
+    <div class="card">
+        <h4 style="color:var(--admin-color)">Withdrawal Requests</h4>
+        <div id="admin-withdraw-list" style="margin-top:10px;">
+            <p style="font-size:0.8rem; color:#94a3b8;">No pending requests.</p>
+        </div>
+    </div>
+</div>
+
+<nav class="nav-bar">
+    <div class="nav-item active" onclick="nav('home', this)"><i class="fas fa-home"></i>Home</div>
+    <div class="nav-item" onclick="nav('tasks', this)"><i class="fas fa-briefcase"></i>Jobs</div>
+    <div class="nav-item" onclick="nav('wallet', this)"><i class="fas fa-wallet"></i>Wallet</div>
+    <div id="admin-nav" class="nav-item" onclick="nav('admin-panel', this)"><i class="fas fa-user-shield"></i>Admin</div>
+</nav>
+
+<script src='//libtl.com/sdk.js' data-zone='10376258' data-sdk='show_10376258'></script>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+<script>
+        // Firebase Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyD_QB4ZbQqKpD3Pzt2mmGGolcW0Kta5Cdw",
+            authDomain: "smart-bot-earning.firebaseapp.com",
+            databaseURL: "https://smart-bot-earning-default-rtdb.firebaseio.com",
+            projectId: "smart-bot-earning",
+            storageBucket: "smart-bot-earning.firebasestorage.app",
+            messagingSenderId: "300913430394",
+            appId: "1:300913430394:web:7f534b34a0a36dfe3510c3"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+
+        // Admin ID Verification
+        const MY_ADMIN_ID = 7537780837; 
+        const tgUser = tg.initDataUnsafe.user || { id: 123, first_name: "Tester" };
+        let userData = { balance: 0 };
+
+        async function init() {
+            if(tgUser.id == MY_ADMIN_ID) {
+                document.getElementById('admin-nav').style.display = 'block';
+                document.getElementById('admin-tag').style.display = 'inline-block';
+                loadAdminWithdrawals();
+            }
+
+            const uRef = db.ref('users/' + tgUser.id);
+            uRef.on('value', s => {
+                if(s.exists()) {
+                    userData = s.val();
+                } else {
+                    userData = { id: tgUser.id, name: tgUser.first_name, balance: 0 };
+                    uRef.set(userData);
+                }
+                updateUI();
+            });
+
+            loadTasks();
+            loadHistory();
+        }
+
+        function updateUI() {
+            const bal = (userData.balance || 0).toFixed(2);
+            document.getElementById('header-balance').innerText = bal;
+            document.getElementById('p-balance').innerText = bal;
+            document.getElementById('ref-link-text').innerText = `https://t.me/YourBotUser?start=${tgUser.id}`;
+        }
+
+        function watchAd() {
+            if (typeof show_10376258 === 'function') {
+                const btn = document.getElementById('btn-watch-ad');
+                btn.disabled = true; btn.innerText = "Ad Loading...";
+                
+                show_10376258().then(() => {
+                    const newBal = (userData.balance || 0) + 1.50;
+                    db.ref('users/' + tgUser.id + '/balance').set(newBal);
+                    tg.showAlert("Congratulations! ৳1.50 added.");
+                    btn.disabled = false; btn.innerText = "Watch & Earn ৳1.5";
+                }).catch(() => {
+                    tg.showAlert("Failed to load ad.");
+                    btn.disabled = false; btn.innerText = "Watch & Earn ৳1.5";
+                });
+            } else {
+                tg.showAlert("SDK not loaded.");
+            }
+        }
+
+        function loadTasks() {
+            db.ref('tasks').on('value', s => {
+                const cont = document.getElementById('task-list-container');
+                cont.innerHTML = '';
+                if(!s.exists()) { cont.innerHTML = '<p style="text-align:center;">No jobs today.</p>'; return; }
+                s.forEach(child => {
+                    const t = child.val();
+                    cont.innerHTML += `
+                        <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
+                            <div><b>${t.title}</b><br><small>Reward: ৳${t.reward}</small></div>
+                            <button onclick="tg.openLink('${t.link}')" class="btn-full" style="width:auto; padding:8px 15px;">Start</button>
+                        </div>`;
+                });
+            });
+        }
+
+        function adminAddTask() {
+            const title = document.getElementById('admin-task-title').value;
+            const link = document.getElementById('admin-task-link').value;
+            const reward = document.getElementById('admin-task-reward').value;
+            if(title && link && reward) {
+                db.ref('tasks').push({ title, link, reward: parseFloat(reward) });
+                tg.showAlert("Task Live Now!");
+                document.getElementById('admin-task-title').value = '';
+                document.getElementById('admin-task-link').value = '';
+            }
+        }
+
+        function loadAdminWithdrawals() {
+            db.ref('withdrawals').on('value', s => {
+                const list = document.getElementById('admin-withdraw-list');
+                list.innerHTML = '';
+                if(!s.exists()) { list.innerHTML = '<p>Clean! No pending.</p>'; return; }
+                s.forEach(child => {
+                    const w = child.val();
+                    list.innerHTML += `
+                        <div class="withdraw-item">
+                            <b>${w.name}</b> (ID: ${w.userId})<br>
+                            Method: ${w.info} | Amount: ৳${w.amount}<br>
+                            <button onclick="markAsPaid('${child.key}')" style="background:#22c55e; color:white; border:none; padding:5px 10px; border-radius:5px; margin-top:5px;">Confirm Payment</button>
+                        </div>`;
+                });
+            });
+        }
+
+        function markAsPaid(key) {
+            if(confirm("Have you sent the money?")) db.ref('withdrawals/' + key).remove();
+        }
+
+        function submitWithdraw() {
+            const amt = parseFloat(document.getElementById('w-amount').value);
+            const info = document.getElementById('w-number').value;
+            if(amt >= 50 && userData.balance >= amt) {
+                db.ref('users/' + tgUser.id + '/balance').set(userData.balance - amt);
+                db.ref('withdrawals').push({ userId: tgUser.id, name: tgUser.first_name, amount: amt, info: info });
+                tg.showAlert("Withdraw request sent!");
+                document.getElementById('w-amount').value = '';
+                document.getElementById('w-number').value = '';
+            } else {
+                tg.showAlert("Insufficient balance or minimum ৳50 required!");
+            }
+        }
+
+        function loadHistory() {
+            db.ref('withdrawals').orderByChild('userId').equalTo(tgUser.id).on('value', s => {
+                const list = document.getElementById('history-list');
+                list.innerHTML = '';
+                if(!s.exists()) { list.innerHTML = '<p style="font-size:0.8rem; color:#94a3b8;">No history yet.</p>'; return; }
+                s.forEach(child => {
+                    const w = child.val();
+                    list.innerHTML += `<div style="padding:10px; background:white; margin-bottom:5px; border-radius:10px; font-size:0.8rem;">
+                        ৳${w.amount} to ${w.info} <span style="color:orange; float:right;">Pending</span>
+                    </div>`;
+                });
+            });
+        }
+
+        function nav(id, el) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            el.classList.add('active');
+        }
+
+        function copyRef() {
+            const link = document.getElementById('ref-link-text').innerText;
+            navigator.clipboard.writeText(link);
+            tg.showAlert("Referral link copied!");
+        }
+
+        init();
+</script>
+
+</body>
+</html>
